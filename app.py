@@ -56,5 +56,19 @@ def insert():
         return redirect(url_for('index'))
 
 
+@app.route('/update', methods=['GET', 'POST'])
+def update():
+    if request.method == 'POST':
+        my_data = PhoneBook.query.get(request.form.get('id'))
+
+        my_data.first_name = request.form['first_name']
+        my_data.last_name = request.form['last_name']
+        my_data.phone_number = request.form['phone_number']
+
+        db.session.commit()
+
+        return redirect(url_for('index'))
+
+
 if __name__ == '__main__':
     app.run(debug=True)
