@@ -2,7 +2,6 @@ from flask import Flask, render_template, request, redirect, url_for, flash
 from flask_restful import Api, Resource, fields, marshal_with, abort, reqparse
 from flask_sqlalchemy import SQLAlchemy
 
-
 app = Flask(__name__)
 app.secret_key = "Secret Key"
 api = Api(app)
@@ -31,11 +30,15 @@ class PhoneBook(db.Model):
 
 db.create_all()
 
+phone_num_put_args = reqparse.RequestParser()
+phone_num_put_args.add_argument("first_name", type=str, help="First Name is required", required=True)
+phone_num_put_args.add_argument("last_name", type=str, help="Last Name is required", required=True)
+phone_num_put_args.add_argument("phone_number", type=str, help="Phone number is required", required=True)
 
-phone_num_args = reqparse.RequestParser()
-phone_num_args.add_argument("first_name", type=str, help="First Name is required", required=True)
-phone_num_args.add_argument("last_name", type=str, help="Last Name is required", required=True)
-phone_num_args.add_argument("phone_number", type=str, help="Phone number is required", required=True)
+phone_num_update_args = reqparse.RequestParser()
+phone_num_update_args.add_argument("first_name", type=str, help="First Name to update")
+phone_num_update_args.add_argument("last_name", type=str, help="Last Name to update")
+phone_num_update_args.add_argument("phone_number", type=str, help="Phone number to update")
 
 
 @app.route('/')
@@ -105,7 +108,7 @@ class PhoneBookResource(Resource):
 
     @marshal_with(resource_fields)
     def put(self, contact_id):
-        args = phone_num_args.parse_args()
+        args = phone_num_put_args.parse_args()
         result = PhoneBook.query.filter_by(id=contact_id).first()
         if result:
             abort(409, message="already exist")
@@ -121,6 +124,31 @@ class PhoneBookResource(Resource):
         db.session.commit()
 
         return contact1, 201
+
+    marshal_with(resource_fields)
+    def patch(self, contact_id):
+        args = phone_num_update_args.parse_args()
+        result = PhoneBook.query.filter_by(id=contact_id).first()
+        if not result:
+            abort(404, message="Contact does not exist")
+
+        if args["first_name"]:
+            result.first_name = args["first_name"]
+        if args["last_name"]:
+            result.last_name = args["last_name"]
+        if args["phone_number"]:
+            result.phone_number = args["phone_number"]
+
+        db.session.commit()
+
+        return result
+
+    def delete(self, contact_id):
+        result = PhoneBook.query.filter_by(id=contact_id).first()
+
+        db.session.delete(result)
+        db.session.commit()
+        return '', 204
 
 
 api.add_resource(PhoneBookResource, '/api/<int:contact_id>')
