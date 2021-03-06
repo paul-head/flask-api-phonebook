@@ -18,8 +18,8 @@ class PhoneBook(db.Model):
     last_name = db.Column(db.String(100), nullable=False)
     phone_number = db.Column(db.String(), nullable=False)
 
-    def __init__(self, id, first_name, last_name, phone_number):
-        self.id = id
+    # TODO 1: using id field in app
+    def __init__(self, first_name, last_name, phone_number):
         self.first_name = first_name
         self.last_name = last_name
         self.phone_number = phone_number
@@ -113,8 +113,9 @@ class PhoneBookResource(Resource):
         if result:
             abort(409, message="already exist")
 
+        # TODO 2: check id field in __init__ method (put, patch)
         contact1 = PhoneBook(
-            id=contact_id,
+            # id=contact_id,
             first_name=args['first_name'],
             last_name=args['last_name'],
             phone_number=args['phone_number']
